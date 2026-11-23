@@ -44,15 +44,28 @@ ul, ol { list-style: none; }
 .rail-nav a.is-current::before { transform: none; }
 
 /* Live counter: a real count of people on the page right now, so the dot marks a real state. */
-.live { display: flex; flex-direction: column; align-items: center; gap: 4px; min-height: 44px; font-size: 0.6875rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--dim); font-variant-numeric: tabular-nums; }
+/* "Here now": set like the rail labels (vertical, tracked capitals) so it reads as part of the nav, with a live dot that breathes slowly. */
+.live { display: flex; align-items: center; gap: 10px; color: var(--dim); font-variant-numeric: tabular-nums; }
+.live[hidden] { display: none; }
+.rail .live { flex-direction: column; min-width: 44px; }
 .rail .live[hidden] { display: flex; visibility: hidden; }
-.live-n { font-size: 1.125rem; font-weight: 700; letter-spacing: 0; color: var(--light); line-height: 1; }
-.live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
-.live-small { flex-direction: row; gap: 6px; min-height: 44px; padding-left: 8px; }
-.live-small .live-n { font-size: 0.9375rem; font-weight: 600; }
+.live-text { writing-mode: vertical-rl; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.22em; white-space: nowrap; }
+.live-n { color: var(--light); font-weight: 700; letter-spacing: 0; text-combine-upright: all; }
+.live-small .live-n { text-combine-upright: none; }
+.live-dot { position: relative; flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+.live-dot::after { content: ""; position: absolute; inset: -4px; border-radius: 50%; border: 1px solid var(--accent); opacity: 0; animation: live-ring 2.4s var(--ease) infinite; }
+@keyframes live-ring { 0% { transform: scale(0.6); opacity: 0.8; } 100% { transform: scale(1.6); opacity: 0; } }
+.live-small { gap: 7px; height: 30px; margin-left: 6px; padding: 0 11px 0 10px; border: 1px solid var(--line); border-radius: 999px; font-size: 0.8125rem; }
+.live-small .live-n { font-weight: 650; }
+.live-small .live-dot { width: 6px; height: 6px; }
+@media (prefers-reduced-motion: reduce) { .live-dot::after { animation: none; } }
+
+/* Other visitors' cursors: an arrow in the accent colour with a small tag, so it reads as a person, not a stray dot. */
 .cursors { position: fixed; inset: 0; pointer-events: none; z-index: 40; overflow: hidden; }
-.cursor { position: absolute; left: -6px; top: -6px; width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--accent); background: rgba(255, 90, 31, 0.25); transition: opacity 600ms; will-change: transform; }
-.cursor.is-idle { opacity: 0.35; }
+.cursor { position: absolute; left: 0; top: 0; display: flex; align-items: flex-start; gap: 2px; transition: opacity 600ms; will-change: transform; }
+.cursor svg { width: 18px; height: 22px; filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5)); }
+.cursor-tag { margin: 15px 0 0 -3px; padding: 2px 8px; border-radius: 999px; background: var(--accent); color: var(--night); font-size: 0.6875rem; font-weight: 650; line-height: 1.5; white-space: nowrap; }
+.cursor.is-idle { opacity: 0.4; }
 .topbar { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; justify-content: space-between; padding: 0 var(--gutter); height: 60px; background: var(--night); border-bottom: 1px solid var(--line); }
 .topbar-mark { font-weight: 800; text-decoration: none; letter-spacing: -0.02em; font-size: 1.125rem; min-height: 44px; display: inline-flex; align-items: center; }
 .topbar nav { display: flex; align-items: center; gap: 4px; }

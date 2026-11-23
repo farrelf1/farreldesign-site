@@ -42,6 +42,7 @@
     if (!c) {
       const el = document.createElement('span');
       el.className = 'cursor';
+      el.innerHTML = '<svg viewBox="0 0 18 22" aria-hidden="true"><path d="M1.5 1.5v17l4.6-4.3 3 6.3 3-1.4-3-6.2h6.4z" fill="#ff5a1f" stroke="#0e0e0d" stroke-width="1.5" stroke-linejoin="round"/></svg><span class="cursor-tag">Visitor</span>';
       layer.appendChild(el);
       c = { el, x, y, tx: x, ty: y, seen: 0 };
       others.set(id, c);
@@ -93,7 +94,7 @@
     }
   }
 
-  if (demo && !useSupabase) {
+  if (demo) {
     const bc = new BroadcastChannel('farrel-live-demo');
     const peers = new Map([[me, Date.now()]]);
     const count = () => {
