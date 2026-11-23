@@ -35,6 +35,7 @@ ul, ol { list-style: none; }
 
 /* Fixed side rail: the nav stays in reach without a top bar covering the work. Vertical labels are set in tracked capitals because sentence case reads badly turned on its side. */
 .rail { position: fixed; inset: 0 auto 0 0; width: var(--rail); border-right: 1px solid var(--line); display: none; flex-direction: column; align-items: center; justify-content: space-between; padding: 28px 0 24px; z-index: 20; background: var(--night); }
+.rail::after { content: ""; width: 44px; height: 44px; } /* balances the mark so the nav stays centred */
 .rail-mark { width: 44px; height: 44px; display: grid; place-items: center; border: 1px solid var(--light); border-radius: 50%; text-decoration: none; font-weight: 700; transition: background 300ms, color 300ms; }
 .rail-mark:hover { background: var(--light); color: var(--night); }
 .rail-nav ul { display: flex; flex-direction: column; gap: 20px; }
@@ -57,7 +58,12 @@ ul, ol { list-style: none; }
 
 /* Other visitors' cursors: an arrow in the accent colour with a small tag, so it reads as a person, not a stray dot. */
 .cursors { position: fixed; inset: 0; pointer-events: none; z-index: 40; overflow: hidden; }
-.cursor { position: absolute; left: 0; top: 0; display: flex; align-items: flex-start; gap: 2px; transition: opacity 600ms; will-change: transform; }
+.cursor { position: absolute; left: 0; top: 0; display: flex; color: var(--accent); align-items: flex-start; gap: 2px; transition: opacity 600ms; will-change: transform; }
+.cursor-me { color: #2f6fe0; z-index: 1; transition: opacity 150ms; }
+.cursor-me .cursor-tag { background: #2f6fe0; color: #fff; }
+.cursor-me.is-off, html:has(dialog[open]) .cursor-me { opacity: 0; }
+html.own-cursor, html.own-cursor * { cursor: none !important; }
+html.own-cursor dialog[open], html.own-cursor dialog[open] * { cursor: auto !important; }
 .cursor svg { width: 18px; height: 22px; filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5)); }
 .cursor-tag { margin: 15px 0 0 -3px; padding: 2px 8px; border-radius: 999px; background: var(--accent); color: var(--night); font-size: 0.6875rem; font-weight: 650; line-height: 1.5; white-space: nowrap; }
 .cursor.is-idle { opacity: 0.4; }
@@ -197,7 +203,7 @@ ul, ol { list-style: none; }
   :root { --gutter: 64px; }
   .rail { display: flex; }
   .topbar { display: none; }
-  .live-pill { display: flex; position: fixed; top: 24px; right: 28px; z-index: 30; }
+  .live-pill { display: flex; position: absolute; top: 28px; right: 28px; z-index: 5; }
   .live-pill[hidden] { display: none; }
   .page { margin-left: var(--rail); }
   .hero { min-height: 100vh; }
