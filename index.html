@@ -30,10 +30,8 @@
       <a href="#work" data-scroll>Work</a>
       <a href="#about" data-scroll>About</a>
       <a href="#contact" data-scroll>Contact</a>
-      <span class="live live-small" hidden><span class="live-dot" aria-hidden="true"></span><span class="live-n">1</span><span class="visually-hidden"> here now</span></span>
     </nav>
   </header>
-  <p class="live live-pill" hidden><span class="live-dot" aria-hidden="true"></span><span><span class="live-n">1</span> here now</span></p>
 
   <main id="main" class="page">
     <section class="hero" id="top" data-section="top" aria-labelledby="hero-title">
@@ -53,7 +51,7 @@
 
       <div class="work-layout">
         <ol class="projects">
-          <li class="project" data-index="0">
+          <li class="project" data-index="0" data-image="">
             <div class="poster p-graphic inline-poster" aria-hidden="true"><span class="mark"></span><span class="word">Graphic</span></div>
             <p class="project-kind project-when">Sep 2026 to now</p>
             <h3 class="project-title">Bank Rakyat Indonesia</h3>
@@ -76,7 +74,7 @@
               </dl>
             </div>
           </li>
-          <li class="project" data-index="1">
+          <li class="project" data-index="1" data-image="">
             <div class="poster p-print inline-poster" aria-hidden="true"><span class="mark"></span><span class="word">OOH</span></div>
             <p class="project-kind project-when">Feb to Aug 2026</p>
             <h3 class="project-title">MAP Active Asia</h3>
@@ -101,7 +99,7 @@
               </dl>
             </div>
           </li>
-          <li class="project" data-index="2">
+          <li class="project" data-index="2" data-image="">
             <div class="poster p-3d inline-poster" aria-hidden="true"><span class="mark"></span><span class="word">3D</span></div>
             <p class="project-kind project-when">Aug 2025 to Feb 2026</p>
             <h3 class="project-title">FIFGROUP</h3>
@@ -149,19 +147,19 @@
       <h2 id="projects-title" class="section-title">Additional projects</h2>
       <p class="extra-lead">Personal, freelance and campus work in 3D and video.</p>
       <ul class="extra-list">
-        <li>
+        <li data-image="">
           <div class="poster p-3d" aria-hidden="true"><span class="mark"></span><span class="word">3D</span><span class="screen-tag">Image goes here</span></div>
           <p class="project-kind">Personal project</p>
           <h3>SAFF &amp; Co.</h3>
           <p>Stylized 3D product visualization for a perfume brand: 3D rendering and animation.</p>
         </li>
-        <li>
+        <li data-image="">
           <div class="poster p-motion" aria-hidden="true"><span class="mark"></span><span class="word">Video</span><span class="screen-tag">Image goes here</span></div>
           <p class="project-kind">Freelance</p>
           <h3>Educational videos</h3>
           <p>Short educational videos in a minimal, animated style that explain concepts clearly.</p>
         </li>
-        <li>
+        <li data-image="">
           <div class="poster p-video" aria-hidden="true"><span class="mark"></span><span class="word">Studies</span><span class="screen-tag">Image goes here</span></div>
           <p class="project-kind">Campus and personal</p>
           <h3>3D studies</h3>
@@ -241,6 +239,7 @@
   </dialog>
 
   <script src="js/app.js" defer></script>
+  <script src="js/images.js" defer></script>
   <script src="js/live-config.js" defer></script>
   <script src="js/live.js" defer></script>
 </body>

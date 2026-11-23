@@ -86,6 +86,8 @@ ul, ol { list-style: none; }
 .p-print .mark { background: linear-gradient(#161616, #161616) 25% 50% / 22% 30% no-repeat, repeating-linear-gradient(90deg, #161616 0 0.4cqw, transparent 0.4cqw 25%), repeating-linear-gradient(180deg, #161616 0 0.4cqw, transparent 0.4cqw 33.33%); border-right: 0.4cqw solid #161616; border-bottom: 0.4cqw solid #161616; }
 .p-3d { --bg: #8f8c84; --fg: #0e0e0d; }
 .p-3d .mark { width: 30cqw; height: 34cqw; right: 9cqw; clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); background: conic-gradient(from -60deg, #d9d5cc 0 120deg, #0e0e0d 120deg 240deg, #4a4843 240deg 360deg); }
+.poster.has-img { background: #161614 var(--img) center / cover no-repeat; }
+.poster.has-img > .mark, .poster.has-img > .word, .poster.has-img > .screen-tag, .viewer-frame:has(.poster.is-on.has-img) > .screen-tag { display: none; }
 .screen-tag { position: absolute; left: 16px; top: 12px; z-index: 3; font-size: 0.8125rem; font-weight: 600; color: #161616; background: rgba(241, 239, 234, 0.92); padding: 2px 8px; border-radius: 2px; }
 
 /* Hero: a tilted wall of work drifts behind the headline and lies flat as you scroll. */
