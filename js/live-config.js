@@ -17,5 +17,5 @@
 window.LIVE_CONFIG = {
   supabaseUrl: 'https://snnuuslehoahbkrcgbyq.supabase.co',
   supabaseAnonKey: 'sb_publishable_RjAbT74jPJT-PMo4iuNgLQ_2y843kKx',
-  clarityId: '',
+  clarityId: 'zhxhoa2ehn',
 };
