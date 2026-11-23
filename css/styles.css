@@ -44,19 +44,14 @@ ul, ol { list-style: none; }
 .rail-nav a.is-current::before { transform: none; }
 
 /* Live counter: a real count of people on the page right now, so the dot marks a real state. */
-/* "Here now": set like the rail labels (vertical, tracked capitals) so it reads as part of the nav, with a live dot that breathes slowly. */
-.live { display: flex; align-items: center; gap: 10px; color: var(--dim); font-variant-numeric: tabular-nums; }
-.live[hidden] { display: none; }
-.rail .live { flex-direction: column; min-width: 44px; }
-.rail .live[hidden] { display: flex; visibility: hidden; }
-.live-text { writing-mode: vertical-rl; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.22em; white-space: nowrap; }
-.live-n { color: var(--light); font-weight: 700; letter-spacing: 0; text-combine-upright: all; }
-.live-small .live-n { text-combine-upright: none; }
-.live-dot { position: relative; flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+/* "Here now": a small pill. Top right of the page on desktop, inside the top bar on phones. */
+.live { display: flex; align-items: center; gap: 8px; height: 32px; padding: 0 13px 0 12px; border: 1px solid var(--line); border-radius: 999px; background: rgba(14, 14, 13, 0.85); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); color: var(--dim); font-size: 0.8125rem; line-height: 1; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.live[hidden], .live-pill { display: none; }
+.live-n { color: var(--light); font-weight: 650; }
+.live-dot { position: relative; flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
 .live-dot::after { content: ""; position: absolute; inset: -4px; border-radius: 50%; border: 1px solid var(--accent); opacity: 0; animation: live-ring 2.4s var(--ease) infinite; }
 @keyframes live-ring { 0% { transform: scale(0.6); opacity: 0.8; } 100% { transform: scale(1.6); opacity: 0; } }
-.live-small { gap: 7px; height: 30px; margin-left: 6px; padding: 0 11px 0 10px; border: 1px solid var(--line); border-radius: 999px; font-size: 0.8125rem; }
-.live-small .live-n { font-weight: 650; }
+.live-small { height: 30px; gap: 7px; margin-left: 6px; padding: 0 11px 0 10px; }
 .live-small .live-dot { width: 6px; height: 6px; }
 @media (prefers-reduced-motion: reduce) { .live-dot::after { animation: none; } }
 
@@ -202,6 +197,8 @@ ul, ol { list-style: none; }
   :root { --gutter: 64px; }
   .rail { display: flex; }
   .topbar { display: none; }
+  .live-pill { display: flex; position: fixed; top: 24px; right: 28px; z-index: 30; }
+  .live-pill[hidden] { display: none; }
   .page { margin-left: var(--rail); }
   .hero { min-height: 100vh; }
   .hero-copy { padding-bottom: 88px; }
