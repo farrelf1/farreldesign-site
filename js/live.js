@@ -44,35 +44,54 @@
   document.body.appendChild(layer);
   const others = new Map();
 
-  function arrow(tag) {
-    return '<svg viewBox="0 0 18 22" aria-hidden="true"><path d="M1.5 1.5v17l4.6-4.3 3 6.3 3-1.4-3-6.2h6.4z" fill="currentColor" stroke="#0e0e0d" stroke-width="1.5" stroke-linejoin="round"/></svg><span class="cursor-tag">' + tag + '</span>';
+  /* Cursor shapes on a 24px grid: arrow, hand (links and buttons) and I-beam (text), with hotspots. */
+  const SHAPES = {
+    a: { d: 'M5 3v16l4.2-4 2.8 6 2.8-1.3-2.8-5.9H18z', hx: 5, hy: 3 },
+    p: { d: 'M9 2.5c-.9 0-1.6.7-1.6 1.6v8.6l-1.3-1.3c-.7-.7-1.8-.7-2.4 0-.6.6-.6 1.6 0 2.3l4.6 5.2c.9 1 2.1 1.6 3.4 1.6h3.6c2.4 0 4.2-1.9 4.2-4.2v-5.4c0-.9-.7-1.5-1.5-1.5s-1.5.7-1.5 1.5v-.8c0-.9-.7-1.5-1.5-1.5s-1.5.7-1.5 1.5v-.6c0-.9-.7-1.5-1.5-1.5s-1.4.6-1.5 1.4V4.1c0-.9-.7-1.6-1.6-1.6z', hx: 9, hy: 3 },
+    t: { d: 'M7.5 2.5h3.7l.8.8.8-.8h3.7v2.6h-3v13.8h3v2.6h-3.7l-.8-.8-.8.8H7.5v-2.6h3V5.1h-3z', hx: 12, hy: 12 },
+  };
+  function svg(k, fill, stroke) {
+    return '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="' + SHAPES[k].d + '" fill="' + fill + '" stroke="' + stroke + '" stroke-width="' + (k === 't' ? 1 : 1.5) + '" stroke-linejoin="round"/></svg>';
+  }
+  const POINTER = 'a, button, summary, label, select, [role="button"], a *, button *';
+  const TEXT = 'p, h1, h2, h3, h4, li, dd, dt, small, blockquote, figcaption, input, textarea';
+  function kindAt(el) {
+    if (!el || !el.closest) return 'a';
+    if (el.closest('a, button, summary, label, select, [role="button"]')) return 'p';
+    if (el.closest(TEXT)) return 't';
+    return 'a';
   }
 
-  /* Your own cursor, in blue, drawn in place of the system arrow so it matches what others see. */
+  /* Your own cursor: the system cursor, recoloured blue, so it never lags and still changes
+     to a hand over links and an I-beam over text. */
   if (finePointer) {
-    const mine = document.createElement('span');
-    mine.className = 'cursor cursor-me is-off';
-    mine.innerHTML = arrow('You');
-    layer.appendChild(mine);
+    const url = (k) => 'url("data:image/svg+xml,' + encodeURIComponent(svg(k, '#2f6fe0', '#ffffff')) + '") ' + SHAPES[k].hx + ' ' + SHAPES[k].hy;
+    const style = document.createElement('style');
+    style.textContent =
+      'html.own-cursor, html.own-cursor body { cursor: ' + url('a') + ', default; }\n' +
+      'html.own-cursor :is(' + TEXT + ') { cursor: ' + url('t') + ', text; }\n' +
+      'html.own-cursor :is(' + POINTER + ') { cursor: ' + url('p') + ', pointer; }';
+    document.head.appendChild(style);
     document.documentElement.classList.add('own-cursor');
-    window.addEventListener('pointermove', (e) => {
-      mine.style.transform = `translate(${e.clientX}px, ${e.clientY}px)`;
-      mine.classList.remove('is-off');
-    }, { passive: true });
-    document.documentElement.addEventListener('pointerleave', () => mine.classList.add('is-off'));
-    window.addEventListener('blur', () => mine.classList.add('is-off'));
   }
 
-  function moveCursor(id, s, x, y) {
+  function moveCursor(id, s, x, y, k) {
     if (!sections[s] || !isFinite(x) || !isFinite(y)) return;
+    if (!SHAPES[k]) k = 'a';
     let c = others.get(id);
     if (!c) {
       const el = document.createElement('span');
       el.className = 'cursor';
-      el.innerHTML = arrow('Visitor');
+      el.innerHTML = '<span class="cursor-shape"></span><span class="cursor-tag">Visitor</span>';
       layer.appendChild(el);
-      c = { el, s, x, y, tx: x, ty: y, seen: 0 };
+      c = { el, s, x, y, tx: x, ty: y, seen: 0, k: '' };
       others.set(id, c);
+    }
+    if (c.k !== k) {
+      c.k = k;
+      const shape = c.el.firstChild;
+      shape.innerHTML = svg(k, '#ff5a1f', '#0e0e0d');
+      shape.style.margin = '-' + SHAPES[k].hy + 'px 0 0 -' + SHAPES[k].hx + 'px';
     }
     if (c.s !== s) { c.s = s; c.x = x; c.y = y; } // jump, don't glide, between sections
     c.tx = x; c.ty = y; c.seen = performance.now();
@@ -103,7 +122,7 @@
     let pending = null;
     function sendPos(cx, cy) {
       const now = performance.now();
-      pending = { id: me, ...locate(cx, cy) };
+      pending = { id: me, ...locate(cx, cy), k: kindAt(document.elementFromPoint(cx, cy)) };
       if (now - last < 80) return; // about 12 updates a second
       last = now;
       t.send(pending);
@@ -134,7 +153,7 @@
       const m = e.data;
       if (m.type === 'hello') peers.set(m.id, Date.now());
       if (m.type === 'bye') { peers.delete(m.id); dropCursor(m.id); }
-      if (m.type === 'cursor') { peers.set(m.id, Date.now()); moveCursor(m.id, m.s, m.x, m.y); }
+      if (m.type === 'cursor') { peers.set(m.id, Date.now()); moveCursor(m.id, m.s, m.x, m.y, m.k); }
       count();
     };
     const hello = () => { peers.set(me, Date.now()); bc.postMessage({ type: 'hello', id: me }); count(); };
@@ -153,7 +172,7 @@
         showCount(Math.max(1, Object.keys(state).length));
         others.forEach((c, id) => { if (!state[id]) dropCursor(id); });
       })
-      .on('broadcast', { event: 'cursor' }, ({ payload }) => moveCursor(payload.id, payload.s, payload.x, payload.y))
+      .on('broadcast', { event: 'cursor' }, ({ payload }) => moveCursor(payload.id, payload.s, payload.x, payload.y, payload.k))
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') {
           channel.track({ at: Date.now() });

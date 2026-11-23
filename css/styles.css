@@ -59,13 +59,9 @@ ul, ol { list-style: none; }
 /* Other visitors' cursors: an arrow in the accent colour with a small tag, so it reads as a person, not a stray dot. */
 .cursors { position: fixed; inset: 0; pointer-events: none; z-index: 40; overflow: hidden; }
 .cursor { position: absolute; left: 0; top: 0; display: flex; color: var(--accent); align-items: flex-start; gap: 2px; transition: opacity 600ms; will-change: transform; }
-.cursor-me { color: #2f6fe0; z-index: 1; transition: opacity 150ms; }
-.cursor-me .cursor-tag { background: #2f6fe0; color: #fff; }
-.cursor-me.is-off, html:has(dialog[open]) .cursor-me { opacity: 0; }
-html.own-cursor, html.own-cursor * { cursor: none !important; }
-html.own-cursor dialog[open], html.own-cursor dialog[open] * { cursor: auto !important; }
-.cursor svg { width: 18px; height: 22px; filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5)); }
-.cursor-tag { margin: 15px 0 0 -3px; padding: 2px 8px; border-radius: 999px; background: var(--accent); color: var(--night); font-size: 0.6875rem; font-weight: 650; line-height: 1.5; white-space: nowrap; }
+.cursor-shape { display: block; width: 24px; height: 24px; filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5)); }
+.cursor-shape svg { display: block; }
+.cursor-tag { margin: 14px 0 0 -6px; padding: 2px 8px; border-radius: 999px; background: var(--accent); color: var(--night); font-size: 0.6875rem; font-weight: 650; line-height: 1.5; white-space: nowrap; }
 .cursor.is-idle { opacity: 0.4; }
 .topbar { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; justify-content: space-between; padding: 0 var(--gutter); height: 60px; background: var(--night); border-bottom: 1px solid var(--line); }
 .topbar-mark { font-weight: 800; text-decoration: none; letter-spacing: -0.02em; font-size: 1.125rem; min-height: 44px; display: inline-flex; align-items: center; }
