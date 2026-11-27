@@ -124,7 +124,9 @@
       setTimeout(() => nameEl.classList.add("is-live"), 150 + chars.length * 45 + 900);
     };
     // keep the idle wave running only while the hero is on screen
-    new IntersectionObserver(([en]) => { heroOnScreen = en.isIntersecting; if (heroOnScreen) kick(); }).observe(heroCard);
+    // and pause it once the hero is about a third scrolled away (it's blurred by then), which
+    // keeps phones from redrawing blurred, moving letters on every frame of the scroll
+    new IntersectionObserver(([en]) => { heroOnScreen = en.intersectionRatio > 0.7; if (heroOnScreen) kick(); }, { threshold: [0, 0.7, 1] }).observe(heroCard);
   }
 
   // Start the intro once fonts are in (or after a short wait), so nothing jumps.
@@ -251,22 +253,44 @@
   // The hero blurs out as it leaves and a soft blur fades in along the top edge.
   const root = document.documentElement;
   const heroEl = $(".hero");
+  const mainEl = $("#main");
   let blurTick = false;
+  // Sizes are measured only when they change, never during a scroll frame: reading layout
+  // right after writing styles forced a full relayout on every frame, which phones felt.
+  let heroH = 0, heroEnd = 1, mainEnd = 0;
+  const measureSizes = () => {
+    heroH = heroEl.offsetHeight;
+    heroEnd = heroEl.offsetTop + heroH;
+    mainEnd = mainEl.offsetTop + mainEl.offsetHeight;
+    root.style.setProperty("--hero-h", `${heroH}px`);
+    root.style.setProperty("--hero-end", `${heroEnd}px`);
+    // Chrome keeps an animation's old scroll range when only the variables change, so restart them
+    if (cssScroll) { root.classList.remove("css-scroll"); void root.offsetWidth; root.classList.add("css-scroll"); }
+    onScroll();
+  };
+  // Where the browser supports scroll-driven animations, the hero's pin, blur and fade run in
+  // CSS together with the scroll itself, so on phones they don't trail a frame behind the finger.
+  const cssScroll = !reduceMotion && !!(window.CSS && CSS.supports && CSS.supports("animation-timeline: scroll()"));
+  if (cssScroll) root.classList.add("css-scroll");
   const updateBlur = () => {
     blurTick = false;
     const y = scrollY;
-    const end = heroEl.offsetTop + heroEl.offsetHeight;
-    const out = clamp01((y - end * 0.25) / (end * 0.75)); // stays sharp for the first stretch
-    root.style.setProperty("--hero-out", (out * out * (3 - 2 * out)).toFixed(3));
+    if (!cssScroll) {
+      const out = clamp01((y - heroEnd * 0.25) / (heroEnd * 0.75)); // stays sharp for the first stretch
+      root.style.setProperty("--hero-out", (out * out * (3 - 2 * out)).toFixed(3));
+      // hero text holds still on screen while the box scrolls up past it
+      root.style.setProperty("--hero-y", `${Math.min(Math.max(y, 0), heroH).toFixed(1)}px`);
+    }
     root.style.setProperty("--edge-blur", clamp01(y / 120).toFixed(3));
-    // hero text holds still on screen while the box scrolls up past it
-    root.style.setProperty("--hero-y", `${Math.min(Math.max(y, 0), heroEl.offsetHeight).toFixed(1)}px`);
+    // the light wash fades out once the page has scrolled off and the navy footer sits under the bar
+    root.style.setProperty("--edge-wash", clamp01((mainEnd - y) / 104).toFixed(3));
   };
   const onScroll = () => {
     nav.classList.toggle("is-scrolled", scrollY > 30);
     if (!blurTick) { blurTick = true; requestAnimationFrame(updateBlur); }
   };
   addEventListener("scroll", onScroll, { passive: true });
+  new ResizeObserver(measureSizes).observe(document.body);
   onScroll();
 
   const moveBean = (link) => {
@@ -277,13 +301,13 @@
     bean.style.transform = `translateX(${link.offsetLeft}px)`;
   };
 
-  const sections = links.map((a) => $(a.getAttribute("href"))).filter(Boolean);
+  const sections = links.map((a) => $(a.dataset.spy || a.getAttribute("href"))).filter(Boolean);
   const visible = new Map();
   const sectionIO = new IntersectionObserver((entries) => {
     entries.forEach((en) => visible.set(en.target, en.isIntersecting));
     // last match wins, so a row inside a section (Experience in About) can take over
     const current = [...sections].reverse().find((sec) => visible.get(sec));
-    moveBean(current ? links.find((a) => a.getAttribute("href") === `#${current.id}`) : null);
+    moveBean(current ? links.find((a) => (a.dataset.spy || a.getAttribute("href")) === `#${current.id}`) : null);
   }, { rootMargin: "-45% 0px -50% 0px" });
   sections.forEach((s) => sectionIO.observe(s));
   addEventListener("resize", () => moveBean($(".nav-links a.is-active")));
@@ -464,17 +488,37 @@
     const get = () => (box ? box.scrollTop : scrollY);
     const max = () => (box ? box.scrollHeight - box.clientHeight : document.documentElement.scrollHeight - innerHeight);
     const set = (y) => (box ? (box.scrollTop = y) : scrollTo(0, y));
-    let target = get(), cur = target, running = false, last = 0;
+    let target = get(), cur = target, running = false, last = 0, glide = null;
+    const easeInOut = (x) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
     const tick = (t) => {
       const dt = Math.min(0.05, (t - last) / 1000 || 0.016); last = t;
-      cur += (target - cur) * (1 - Math.pow(1 - SMOOTH_EASE, dt * 60));
-      if (Math.abs(target - cur) < 0.5) cur = target;
+      if (glide) {
+        // link clicks: a timed glide that eases in and out, never a lurch
+        const k = Math.min(1, (t - glide.start) / glide.dur);
+        cur = target = glide.from + (glide.to - glide.from) * easeInOut(k);
+        if (k === 1) glide = null;
+      } else {
+        cur += (target - cur) * (1 - Math.pow(1 - SMOOTH_EASE, dt * 60));
+        if (Math.abs(target - cur) < 0.5) cur = target;
+      }
       set(cur);
-      if (cur !== target) requestAnimationFrame(tick); else running = false;
+      if (glide || cur !== target) requestAnimationFrame(tick); else running = false;
+    };
+    const start = () => {
+      if (!running) { running = true; last = performance.now(); requestAnimationFrame(tick); }
     };
     const to = (y) => {
+      glide = null; // the wheel takes over from a link glide straight away
+      if (!running) cur = get();
       target = Math.min(Math.max(y, 0), max());
-      if (!running) { cur = get(); running = true; last = performance.now(); requestAnimationFrame(tick); }
+      start();
+    };
+    // longer trips take a little longer, between 0.7s and 1.4s
+    const glideTo = (y) => {
+      const from = get(), dest = Math.min(Math.max(y, 0), max());
+      glide = { from, to: dest, start: performance.now(), dur: Math.min(1400, Math.max(700, Math.abs(dest - from) * 0.45)) };
+      cur = from;
+      start();
     };
     (box || window).addEventListener("wheel", (e) => {
       if (e.ctrlKey || e.defaultPrevented || Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
@@ -485,7 +529,7 @@
     }, { passive: false });
     // keyboard, scrollbar and code-driven scrolls: pick up from wherever we are
     (box || window).addEventListener("scroll", () => { if (!running) target = cur = get(); }, { passive: true });
-    return { to };
+    return { to, glideTo };
   };
 
   if (!reduceMotion) {
@@ -497,8 +541,10 @@
       const el = a && a.getAttribute("href").length > 1 && document.querySelector(a.getAttribute("href"));
       if (!el || sheet.open) return;
       e.preventDefault();
+      // the contact footer lives under the page, so "Contact" glides to the very end
+      if (el.id === "contact") { page.glideTo(Infinity); return; }
       const margin = parseFloat(getComputedStyle(el).scrollMarginTop) || 0;
-      page.to(el.getBoundingClientRect().top + scrollY - margin);
+      page.glideTo(el.getBoundingClientRect().top + scrollY - margin);
     });
   }
 

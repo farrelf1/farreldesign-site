@@ -123,7 +123,7 @@ section { scroll-margin-top: 90px; }
 .edge-blur span:nth-child(3) { backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); -webkit-mask-image: linear-gradient(#000 10%, transparent 55%); mask-image: linear-gradient(#000 10%, transparent 55%); }
 .edge-blur span:nth-child(4) {
   backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-  background: linear-gradient(rgba(251,250,247,.6), rgba(251,250,247,0));
+  background: linear-gradient(rgba(251,250,247,calc(.6 * var(--edge-wash, 1))), rgba(251,250,247,0));
   -webkit-mask-image: linear-gradient(#000, transparent 45%); mask-image: linear-gradient(#000, transparent 45%);
 }
 
@@ -207,6 +207,21 @@ section { scroll-margin-top: 90px; }
 /* All hero text stays fixed in place while the box scrolls up; the box's
    rounded edge clips it as it passes (--hero-y comes from app.js) */
 .hero-name, .hero-bottom { translate: 0 var(--hero-y, 0px); will-change: translate; }
+/* Same effects as scroll-driven animations where supported (class set by app.js): they run
+   with the scroll itself, so they don't lag behind a finger on phones */
+@keyframes hero-pin { from { translate: 0 0; } to { translate: 0 var(--hero-h); } }
+@keyframes hero-blur { from { filter: blur(0); } to { filter: blur(8px); } }
+@keyframes hero-out { from { transform: scale(1); opacity: 1; } to { transform: scale(.94); opacity: .5; } }
+html.css-scroll .hero-name, html.css-scroll .hero-bottom {
+  animation: hero-pin linear both, hero-blur ease-in-out both;
+  animation-timeline: scroll(root), scroll(root);
+  animation-range: 0px var(--hero-h), calc(var(--hero-end) * .25) var(--hero-end);
+}
+html.css-scroll .hero-card {
+  animation: hero-out ease-in-out both;
+  animation-timeline: scroll(root);
+  animation-range: calc(var(--hero-end) * .25) var(--hero-end);
+}
 .hero-card {
   position: relative;
   min-height: max(620px, calc(100svh - 24px));
@@ -374,6 +389,40 @@ section { scroll-margin-top: 90px; }
 .contact-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 18px; align-items: center; }
 .contact-card .btn-ink { background: #fff; color: var(--ink); }
 .contact-card .btn-ink:hover { background: var(--orange); }
+
+/* Curtain footer: the page scrolls up off it, like the hero in reverse.
+   The page sits on top with rounded bottom corners; the footer stays
+   pinned to the bottom of the screen underneath it. */
+#main {
+  position: relative; z-index: 1;
+  background: var(--paper);
+  border-radius: 0 0 var(--r-xl) var(--r-xl);
+  box-shadow: 0 40px 60px -40px rgba(20, 32, 43, .35);
+  padding-bottom: 40px;
+}
+/* invisible marker over the end of the page and the revealed footer, for the nav highlight */
+#contact-spy { position: absolute; left: 0; right: 0; bottom: -40vh; height: 90vh; pointer-events: none; }
+.site-footer.contact-card {
+  position: sticky; bottom: 0; z-index: 0;
+  /* as tall as the screen minus the navbar, so scrolling stops with the
+     page's rounded edge sitting just under the navbar */
+  /* stops with the page's rounded edge tucked right under the navbar pill */
+  /* reaches up behind the page's rounded corners so navy shows around the curve; the extra
+     height equals the pull-up, so the scroll stop doesn't move */
+  --corner: var(--r-xl);
+  margin-top: calc(-1 * var(--corner));
+  min-height: calc(100svh - var(--footer-gap, 96px) + var(--corner));
+  display: grid; align-items: end; gap: 0;
+  border-radius: 0; padding: 0;
+}
+.site-footer .footer-inner { display: grid; gap: 22px; padding: 40px 0 28px; } /* content sits at the bottom; small top padding so it never makes the footer taller than the screen */
+.footer-bottom {
+  margin-top: clamp(28px, 7vh, 96px); padding-top: 20px;
+  display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  border-top: 1px solid rgba(255, 255, 255, .16);
+  font-size: 14px; color: rgba(255, 255, 255, .7);
+}
+.site-footer .to-top { color: #fff; }
 
 #copy { overflow: hidden; }
 #copy .copy-label, #copy .copy-done { transition: transform .5s var(--spring), opacity .3s; }
@@ -612,6 +661,9 @@ section { scroll-margin-top: 90px; }
   .stat { width: 88px; }
   .stat b { width: 78px; font-size: 20px; }
   .footer { padding-bottom: 96px; }
+  .site-footer .footer-inner { padding-bottom: 96px; } /* room for the bottom nav */
+  #main { border-radius: 0 0 32px 32px; }
+  .site-footer.contact-card { --footer-gap: 88px; --corner: 32px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
